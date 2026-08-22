@@ -16,4 +16,10 @@ export interface WebhookFormValues {
   url: string;
   auth: string;
   events: OutboundWebhookEventName[];
+  productIds: string[];
+}
+
+export interface WebhookProductOption {
+  value: string;
+  label: string;
 }

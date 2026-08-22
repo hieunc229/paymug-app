@@ -2,6 +2,7 @@ import { z } from "zod";
 import { getSessionUser } from "@/lib/auth";
 import { outboundWebhookEventNames } from "@/lib/outbound-webhook-events.config";
 import { isAllowedWebhookUrl } from "@/lib/outbound-webhook-url.utils";
+import { listProductsByUser } from "@/lib/db";
 import {
   deleteOutboundWebhook,
   getOutboundWebhook,
@@ -16,6 +17,7 @@ const updateSchema = z.object({
   url: z.string().trim().url().max(2_000).optional(),
   auth: z.union([z.string().trim().max(2_000), z.null()]).optional(),
   events: z.array(z.string()).min(1).max(20).optional(),
+  productIds: z.array(z.string().min(1)).max(100).optional(),
   status: z.enum(["active", "paused"]).optional(),
 });
 
@@ -58,6 +60,20 @@ export async function PATCH(
   ) {
     return jsonError("One or more webhook events are invalid", 400);
   }
+  const productIds = parsed.data.productIds
+    ? [...new Set(parsed.data.productIds)]
+    : undefined;
+  if (productIds) {
+    const products = await listProductsByUser(
+      user.id,
+      user.activeStoreId,
+      user.environment,
+    );
+    const availableProductIds = new Set(products.map((product) => product.id));
+    if (productIds.some((productId) => !availableProductIds.has(productId))) {
+      return jsonError("One or more selected products are invalid", 400);
+    }
+  }
   const { id } = await params;
   const webhook = await updateOutboundWebhook(
     id,
@@ -69,6 +85,7 @@ export async function PATCH(
       events: parsed.data.events
         ? ([...new Set(parsed.data.events)] as OutboundWebhookEventName[])
         : undefined,
+      productIds,
     },
   );
   return webhook

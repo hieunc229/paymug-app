@@ -191,6 +191,15 @@ export function WebhooksWorkspace() {
                           Auth configured
                         </span>
                       )}
+                      <span
+                        className={badgeBaseClass + " " + badgeVariantClasses.muted}
+                      >
+                        {webhook.productIds.length === 0
+                          ? "All products"
+                          : webhook.productIds.length === 1
+                            ? "1 product"
+                            : `${webhook.productIds.length} products`}
+                      </span>
                       {webhook.events.map((eventName) => (
                         <span
                           key={eventName}

@@ -473,6 +473,7 @@ export const webhooks = sqliteTable(
     authEncrypted: text("auth_encrypted"),
     secretEncrypted: text("secret_encrypted").notNull(),
     events: text("events").notNull().default("[]"),
+    productIds: text("product_ids").notNull().default("[]"),
     status: text("status", { enum: ["active", "paused"] })
       .notNull()
       .default("active"),

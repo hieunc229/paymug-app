@@ -110,5 +110,11 @@ export const runtimeDatabaseMigrations: RuntimeDatabaseMigration[] = [
     "statements": [
       "ALTER TABLE `orders` ADD `custom` text DEFAULT '{}' NOT NULL;"
     ]
+  },
+  {
+    "name": "0010_webhook_products.sql",
+    "statements": [
+      "ALTER TABLE `webhooks` ADD `product_ids` text DEFAULT '[]' NOT NULL;"
+    ]
   }
 ];

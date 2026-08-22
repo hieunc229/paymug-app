@@ -30,6 +30,7 @@ export interface OutboundWebhookRecord {
   url: string;
   authConfigured: boolean;
   events: OutboundWebhookEventName[];
+  productIds: string[];
   status: "active" | "paused";
   createdAt: string;
   updatedAt: string;
@@ -57,6 +58,7 @@ export interface CreateOutboundWebhookInput {
   url: string;
   auth?: string;
   events: OutboundWebhookEventName[];
+  productIds: string[];
 }
 
 export interface UpdateOutboundWebhookInput {
@@ -64,6 +66,7 @@ export interface UpdateOutboundWebhookInput {
   url?: string;
   auth?: string | null;
   events?: OutboundWebhookEventName[];
+  productIds?: string[];
   status?: "active" | "paused";
 }
 

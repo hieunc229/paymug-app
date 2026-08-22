@@ -8,6 +8,10 @@ import {
   webhooks as webhooksTable,
 } from "@/db/schema";
 import { decryptSecret, encryptSecret } from "./crypto";
+import {
+  outboundWebhookMatchesProduct,
+  parseOutboundWebhookProductIds,
+} from "./outbound-webhook-products.utils";
 import { uid } from "./utils";
 import type {
   CreatedOutboundWebhook,
@@ -41,6 +45,7 @@ function mapWebhook(
     url: row.url,
     authConfigured: Boolean(row.authEncrypted),
     events: parseEvents(row.events),
+    productIds: parseOutboundWebhookProductIds(row.productIds),
     status: row.status,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -131,6 +136,7 @@ export async function createOutboundWebhook(
     authEncrypted: input.auth ? await encryptSecret(input.auth) : null,
     secretEncrypted: await encryptSecret(secret),
     events: JSON.stringify(input.events),
+    productIds: JSON.stringify(input.productIds),
     status: "active",
     createdAt: now,
     updatedAt: now,
@@ -163,6 +169,9 @@ export async function updateOutboundWebhook(
       ...(authEncrypted !== undefined ? { authEncrypted } : {}),
       ...(input.events !== undefined
         ? { events: JSON.stringify(input.events) }
+        : {}),
+      ...(input.productIds !== undefined
+        ? { productIds: JSON.stringify(input.productIds) }
         : {}),
       ...(input.status !== undefined ? { status: input.status } : {}),
       updatedAt: new Date().toISOString(),
@@ -286,8 +295,13 @@ export async function dispatchOutboundWebhookEvent(
         eq(webhooksTable.status, "active"),
       ),
     });
-    const subscribed = rows.filter((row) =>
-      parseEvents(row.events).includes(input.eventName),
+    const subscribed = rows.filter(
+      (row) =>
+        parseEvents(row.events).includes(input.eventName) &&
+        outboundWebhookMatchesProduct(
+          parseOutboundWebhookProductIds(row.productIds),
+          input.data,
+        ),
     );
     await Promise.all(
       subscribed.map((row) => deliverWebhook(row, input.eventName, input.data)),

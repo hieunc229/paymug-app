@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Alert, Button, Input } from "@/components/ui";
+import { CustomSelect } from "@/components/CustomSelect";
 import {
   buttonBaseClass,
   buttonVariantClasses,
@@ -16,12 +17,15 @@ import type {
   WebhooksResponse,
 } from "./WebhooksWorkspace.types";
 
-export function EditWebhookForm({ webhook }: EditWebhookFormProps) {
+export function EditWebhookForm({ webhook, products }: EditWebhookFormProps) {
   const [values, setValues] = useState<WebhookFormValues>({
     name: webhook.name,
     url: webhook.url,
     auth: "",
     events: webhook.events,
+    productIds: webhook.productIds.filter((productId) =>
+      products.some((product) => product.value === productId),
+    ),
   });
   const [authConfigured, setAuthConfigured] = useState(
     webhook.authConfigured,
@@ -53,6 +57,7 @@ export function EditWebhookForm({ webhook }: EditWebhookFormProps) {
           name: values.name,
           url: values.url,
           events: values.events,
+          productIds: values.productIds,
           ...(values.auth
             ? { auth: values.auth }
             : removeAuth
@@ -140,6 +145,23 @@ export function EditWebhookForm({ webhook }: EditWebhookFormProps) {
             Remove the current Auth value
           </label>
         )}
+        <CustomSelect
+          label="Product"
+          value={values.productIds[0] || ""}
+          options={[{ value: "", label: "All products" }, ...products]}
+          onValueChange={(productId) =>
+            setValues((current) => ({
+              ...current,
+              productIds: productId ? [productId] : [],
+            }))
+          }
+          searchable={products.length > 8}
+          searchPlaceholder="Search products…"
+        />
+        <p className="-mt-2 text-xs leading-5 text-muted">
+          Only events associated with the selected product will be delivered.
+          Choose all products to receive every matching event.
+        </p>
       </div>
 
       <fieldset className="mt-5">

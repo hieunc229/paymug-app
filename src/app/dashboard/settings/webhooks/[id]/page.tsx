@@ -5,6 +5,7 @@ import {
   dashboardPageCopyClass,
 } from "@/components/dashboard/dashboard.styles";
 import { getSessionUser } from "@/lib/auth";
+import { listProductsByUser } from "@/lib/db";
 import { getOutboundWebhook } from "@/lib/outbound-webhooks";
 import type { EditWebhookPageProps } from "./page.types";
 
@@ -21,6 +22,11 @@ export default async function EditWebhookPage({
     user.environment,
   );
   if (!webhook) notFound();
+  const products = await listProductsByUser(
+    user.id,
+    user.activeStoreId,
+    user.environment,
+  );
 
   return (
     <div className={dashboardPageClass}>
@@ -28,7 +34,13 @@ export default async function EditWebhookPage({
       <p className={dashboardPageCopyClass}>
         Update the endpoint, outbound authentication, and subscribed events.
       </p>
-      <EditWebhookForm webhook={webhook} />
+      <EditWebhookForm
+        webhook={webhook}
+        products={products.map((product) => ({
+          value: product.id,
+          label: product.name,
+        }))}
+      />
     </div>
   );
 }

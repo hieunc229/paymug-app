@@ -4,6 +4,7 @@ import { Copy } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState } from "react";
 import { Alert, Button, Input } from "@/components/ui";
+import { CustomSelect } from "@/components/CustomSelect";
 import {
   buttonBaseClass,
   buttonVariantClasses,
@@ -11,6 +12,7 @@ import {
 import { outboundWebhookEventOptions } from "@/lib/outbound-webhook-events.config";
 import type { OutboundWebhookEventName } from "@/lib/outbound-webhooks.types";
 import { dashboardCardClass, dashboardIconButtonClass } from "./dashboard.styles";
+import type { CreateWebhookFormProps } from "./CreateWebhookForm.types";
 import type {
   WebhookFormValues,
   WebhooksResponse,
@@ -21,9 +23,10 @@ const initialForm: WebhookFormValues = {
   url: "",
   auth: "",
   events: [],
+  productIds: [],
 };
 
-export function CreateWebhookForm() {
+export function CreateWebhookForm({ products }: CreateWebhookFormProps) {
   const [values, setValues] = useState<WebhookFormValues>(initialForm);
   const [secret, setSecret] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -140,6 +143,23 @@ export function CreateWebhookForm() {
           Sent as the <code>Authorization</code> header on every outbound
           request. Paymug never uses this value to authenticate incoming
           requests.
+        </p>
+        <CustomSelect
+          label="Product"
+          value={values.productIds[0] || ""}
+          options={[{ value: "", label: "All products" }, ...products]}
+          onValueChange={(productId) =>
+            setValues((current) => ({
+              ...current,
+              productIds: productId ? [productId] : [],
+            }))
+          }
+          searchable={products.length > 8}
+          searchPlaceholder="Search products…"
+        />
+        <p className="-mt-2 text-xs leading-5 text-muted">
+          Only events associated with the selected product will be delivered.
+          Choose all products to receive every matching event.
         </p>
       </div>
       <fieldset className="mt-5">
